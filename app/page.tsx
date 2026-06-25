@@ -1,14 +1,29 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function Home() {
   const [code, setCode] = useState<string | null>(null);
+  const [timeLeft, setTimeLeft] = useState(0);
 
   function generateCode() {
     const randomCode = Math.floor(100000 + Math.random() * 900000).toString();
     setCode(randomCode);
+    setTimeLeft(60); // start 60 sec cooldown
   }
+
+  // countdown timer
+  useEffect(() => {
+    if (timeLeft <= 0) return;
+
+    const interval = setInterval(() => {
+      setTimeLeft((prev) => prev - 1);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [timeLeft]);
+
+  const isDisabled = timeLeft > 0;
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-gray-950 text-white">
@@ -24,9 +39,14 @@ export default function Home() {
 
         <button
           onClick={generateCode}
-          className="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-lg text-lg font-medium"
+          disabled={isDisabled}
+          className={`px-6 py-3 rounded-lg text-lg font-medium transition ${
+            isDisabled
+              ? "bg-gray-600 cursor-not-allowed"
+              : "bg-blue-600 hover:bg-blue-700"
+          }`}
         >
-          Start Verification
+          {timeLeft > 0 ? `Wait ${timeLeft}s` : code ? "Resend Code" : "Start Verification"}
         </button>
 
         {code && (
